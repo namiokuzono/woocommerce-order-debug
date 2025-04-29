@@ -4,10 +4,31 @@
  * Description: Debug tool for tracking WooCommerce order creation and processing
  * Version: 1.0.0
  * Author: Debug Helper
+ * Requires at least: 5.0
+ * Requires PHP: 7.2
+ * WC requires at least: 3.0
  */
 
 if (!defined('ABSPATH')) {
     exit;
+}
+
+// Check if WooCommerce is active
+function wc_order_debug_check_woocommerce() {
+    if (!class_exists('WooCommerce')) {
+        add_action('admin_notices', 'wc_order_debug_missing_wc_notice');
+        return false;
+    }
+    return true;
+}
+
+// Display WooCommerce missing notice
+function wc_order_debug_missing_wc_notice() {
+    ?>
+    <div class="error">
+        <p><?php _e('WooCommerce Order Debug requires WooCommerce to be installed and active.', 'wc-order-debug'); ?></p>
+    </div>
+    <?php
 }
 
 class WC_Order_Debug {
@@ -117,6 +138,8 @@ class WC_Order_Debug {
             'log_checkout',
             'Log Checkout Process',
             array($this, 'checkbox_callback'),
+            'wc-order-debug',
+            'wc_order_debug_main',
             array('label_for' => 'log_checkout')
         );
         
@@ -411,7 +434,10 @@ class WC_Order_Debug {
     }
 }
 
-// Initialize the debug plugin
-add_action('plugins_loaded', function() {
-    WC_Order_Debug::get_instance();
-}); 
+// Initialize the plugin only if WooCommerce is active
+function wc_order_debug_init() {
+    if (wc_order_debug_check_woocommerce()) {
+        WC_Order_Debug::get_instance();
+    }
+}
+add_action('plugins_loaded', 'wc_order_debug_init'); 
