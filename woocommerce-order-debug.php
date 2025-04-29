@@ -378,13 +378,23 @@ class WC_Order_Debug {
     public function log_email_sent($order, $sent_to_admin, $plain_text, $email) {
         if (!$this->debug_options['log_emails']) return;
         
+        $email_data = array(
+            'email_type' => $email->id,
+            'sent_to_admin' => $sent_to_admin,
+            'recipient' => $email->get_recipient(),
+            'subject' => $email->get_subject(),
+            'headers' => $email->get_headers(),
+            'attachments' => $email->get_attachments(),
+            'order_id' => $order->get_id(),
+            'order_status' => $order->get_status(),
+            'customer_email' => $order->get_billing_email(),
+            'customer_name' => $order->get_formatted_billing_full_name()
+        );
+
         $this->log(
-            sprintf('Email sent for order #%d', $order->get_id()),
-            array(
-                'email_type' => $email->id,
-                'sent_to_admin' => $sent_to_admin,
-                'plain_text' => $plain_text
-            )
+            sprintf('Email sent: %s for order #%d', $email->id, $order->get_id()),
+            $email_data,
+            'email'
         );
     }
 
